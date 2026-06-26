@@ -1,0 +1,23 @@
+=====================================
+     HOME SOC - LOG ANALYZER
+=====================================
+
+Using log file: /var/log/auth.log
+
+Failed login attempts:
+0
+
+Successful logins:
+0
+
+Last 10 authentication events:
+2026-06-26T05:38:08.715197+03:00 kinoti-HP-EliteBook-840-G3 sudo:   kinoti : PWD=/home/kinoti ; USER=root ; COMMAND=/usr/bin/mint-refresh-cache
+2026-06-26T05:38:08.728110+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+2026-06-26T05:38:16.051070+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session closed for user root
+2026-06-26T05:39:08.693076+03:00 kinoti-HP-EliteBook-840-G3 sudo:   kinoti : PWD=/home/kinoti ; USER=root ; COMMAND=/usr/bin/mint-refresh-cache
+2026-06-26T05:39:08.694749+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+2026-06-26T05:39:19.316341+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session closed for user root
+2026-06-26T06:17:01.351071+03:00 kinoti-HP-EliteBook-840-G3 CRON[78938]: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+2026-06-26T06:17:01.356631+03:00 kinoti-HP-EliteBook-840-G3 CRON[78938]: pam_unix(cron:session): session closed for user root
+2026-06-26T06:25:01.387950+03:00 kinoti-HP-EliteBook-840-G3 CRON[79056]: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+2026-06-26T06:25:01.399624+03:00 kinoti-HP-EliteBook-840-G3 CRON[79056]: pam_unix(cron:session): session closed for user root
