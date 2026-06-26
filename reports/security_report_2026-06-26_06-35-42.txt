@@ -1,0 +1,156 @@
+=========================================
+        HOME SOC SECURITY REPORT
+=========================================
+Generated: Fri Jun 26 06:35:42 AM EAT 2026
+
+========== SYSTEM INVENTORY ==========
+===================================
+     HOME SOC - SYSTEM INVENTORY
+===================================
+
+[Date]
+Fri Jun 26 06:35:42 AM EAT 2026
+
+[Hostname]
+kinoti-HP-EliteBook-840-G3
+
+[Current User]
+kinoti
+
+[Operating System]
+PRETTY_NAME="Linux Mint 22.3"
+
+[Kernel Version]
+6.17.0-35-generic
+
+[IP Address]
+10.0.71.215 
+
+[CPU]
+Model name:                              Intel(R) Core(TM) i5-6200U CPU @ 2.30GHz
+
+[Memory]
+               total        used        free      shared  buff/cache   available
+Mem:           7.6Gi       4.8Gi       585Mi       626Mi       3.1Gi       2.8Gi
+Swap:          2.0Gi       8.0Ki       2.0Gi
+
+[Disk Usage]
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           783M  1.7M  781M   1% /run
+efivarfs        118K   67K   47K  59% /sys/firmware/efi/efivars
+/dev/nvme0n1p2  234G   75G  148G  34% /
+tmpfs           3.9G  120M  3.8G   4% /dev/shm
+tmpfs           5.0M  8.0K  5.0M   1% /run/lock
+/dev/nvme0n1p1  511M  6.2M  505M   2% /boot/efi
+tmpfs           783M  228K  782M   1% /run/user/1000
+
+[Logged In Users]
+kinoti   tty7         2026-06-25 15:27 (:0)
+
+[Running Services]
+  UNIT                          LOAD   ACTIVE SUB     DESCRIPTION
+  accounts-daemon.service       loaded active running Accounts Service
+  AdGuardHome.service           loaded active running AdGuard Home: Network-level blocker
+  avahi-daemon.service          loaded active running Avahi mDNS/DNS-SD Stack
+  bluetooth.service             loaded active running Bluetooth service
+  colord.service                loaded active running Manage, Install and Generate Color Profiles
+  cron.service                  loaded active running Regular background program processing daemon
+  cups-browsed.service          loaded active running Make remote CUPS printers available locally
+  cups.service                  loaded active running CUPS Scheduler
+  dbus.service                  loaded active running D-Bus System Message Bus
+  fwupd.service                 loaded active running Firmware update daemon
+  getty@tty1.service            loaded active running Getty on tty1
+  iio-sensor-proxy.service      loaded active running IIO Sensor Proxy service
+  irqbalance.service            loaded active running irqbalance daemon
+  kerneloops.service            loaded active running Tool to automatically collect and submit kernel crash signatures
+  lightdm.service               loaded active running Light Display Manager
+  ModemManager.service          loaded active running Modem Manager
+  NetworkManager.service        loaded active running Network Manager
+  polkit.service                loaded active running Authorization Manager
+  power-profiles-daemon.service loaded active running Power Profiles daemon
+  rsyslog.service               loaded active running System Logging Service
+  rtkit-daemon.service          loaded active running RealtimeKit Scheduling Policy Service
+  switcheroo-control.service    loaded active running Switcheroo Control Proxy service
+  systemd-journald.service      loaded active running Journal Service
+  systemd-logind.service        loaded active running User Login Management
+  systemd-resolved.service      loaded active running Network Name Resolution
+  systemd-timesyncd.service     loaded active running Network Time Synchronization
+  systemd-udevd.service         loaded active running Rule-based Manager for Device Events and Files
+  thermald.service              loaded active running Thermal Daemon Service
+  touchegg.service              loaded active running Touchégg Daemon
+  udisks2.service               loaded active running Disk Manager
+  upower.service                loaded active running Daemon for power management
+  user@1000.service             loaded active running User Manager for UID 1000
+  vnstat.service                loaded active running vnStat network traffic monitor
+  wpa_supplicant.service        loaded active running WPA supplicant
+
+Legend: LOAD   → Reflects whether the unit definition was properly loaded.
+        ACTIVE → The high-level unit activation state, i.e. generalization of SUB.
+        SUB    → The low-level unit activation state, values depend on unit type.
+
+34 loaded units listed.
+
+========== OPEN PORTS ==========
+Netid State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess
+udp   UNCONN 0      0         127.0.0.54:53         0.0.0.0:*          
+udp   UNCONN 0      0      127.0.0.53%lo:53         0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:57621      0.0.0.0:*          
+udp   UNCONN 0      0        224.0.0.251:5353       0.0.0.0:*          
+udp   UNCONN 0      0        224.0.0.251:5353       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:5353       0.0.0.0:*          
+udp   UNCONN 0      0        224.0.0.251:5353       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:5353       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:1900       0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:60316      0.0.0.0:*          
+udp   UNCONN 0      0            0.0.0.0:40302      0.0.0.0:*          
+udp   UNCONN 0      0               [::]:5353          [::]:*          
+udp   UNCONN 0      0               [::]:5353          [::]:*          
+udp   UNCONN 0      0               [::]:50606         [::]:*          
+tcp   LISTEN 0      10           0.0.0.0:57621      0.0.0.0:*          
+tcp   LISTEN 0      4096         0.0.0.0:57669      0.0.0.0:*          
+tcp   LISTEN 0      4096       127.0.0.1:631        0.0.0.0:*          
+tcp   LISTEN 0      4096       127.0.0.1:5037       0.0.0.0:*          
+tcp   LISTEN 0      4096      127.0.0.54:53         0.0.0.0:*          
+tcp   LISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*          
+tcp   LISTEN 0      4096           [::1]:631           [::]:*          
+tcp   LISTEN 0      4096               *:3000             *:*          
+
+========== DISK USAGE ==========
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs           783M  1.7M  781M   1% /run
+efivarfs        118K   67K   47K  59% /sys/firmware/efi/efivars
+/dev/nvme0n1p2  234G   75G  148G  34% /
+tmpfs           3.9G  120M  3.8G   4% /dev/shm
+tmpfs           5.0M  8.0K  5.0M   1% /run/lock
+/dev/nvme0n1p1  511M  6.2M  505M   2% /boot/efi
+tmpfs           783M  228K  782M   1% /run/user/1000
+
+========== MEMORY ==========
+               total        used        free      shared  buff/cache   available
+Mem:           7.6Gi       4.8Gi       580Mi       626Mi       3.1Gi       2.8Gi
+Swap:          2.0Gi       8.0Ki       2.0Gi
+
+========== RECENT AUTHENTICATION EVENTS ==========
+2026-06-26T05:17:01.322100+03:00 kinoti-HP-EliteBook-840-G3 CRON[76250]: pam_unix(cron:session): session closed for user root
+2026-06-26T05:17:40.806292+03:00 kinoti-HP-EliteBook-840-G3 sudo:   kinoti : PWD=/home/kinoti ; USER=root ; COMMAND=/usr/lib/linuxmint/mintUpdate/dpkg_lock_check.sh
+2026-06-26T05:17:40.811633+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+2026-06-26T05:17:41.128069+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session closed for user root
+2026-06-26T05:23:43.916363+03:00 kinoti-HP-EliteBook-840-G3 sudo:   kinoti : TTY=pts/0 ; PWD=/home/kinoti/home-soc ; USER=root ; COMMAND=/usr/local/bin/apt install tree
+2026-06-26T05:23:43.941607+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by kinoti(uid=1000)
+2026-06-26T05:23:53.719741+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session closed for user root
+2026-06-26T05:25:11.215082+03:00 kinoti-HP-EliteBook-840-G3 sudo:   kinoti : PWD=/home/kinoti ; USER=root ; COMMAND=/usr/lib/linuxmint/mintUpdate/dpkg_lock_check.sh
+2026-06-26T05:25:11.222263+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+2026-06-26T05:25:11.547415+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session closed for user root
+2026-06-26T05:38:08.715197+03:00 kinoti-HP-EliteBook-840-G3 sudo:   kinoti : PWD=/home/kinoti ; USER=root ; COMMAND=/usr/bin/mint-refresh-cache
+2026-06-26T05:38:08.728110+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+2026-06-26T05:38:16.051070+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session closed for user root
+2026-06-26T05:39:08.693076+03:00 kinoti-HP-EliteBook-840-G3 sudo:   kinoti : PWD=/home/kinoti ; USER=root ; COMMAND=/usr/bin/mint-refresh-cache
+2026-06-26T05:39:08.694749+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+2026-06-26T05:39:19.316341+03:00 kinoti-HP-EliteBook-840-G3 sudo: pam_unix(sudo:session): session closed for user root
+2026-06-26T06:17:01.351071+03:00 kinoti-HP-EliteBook-840-G3 CRON[78938]: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+2026-06-26T06:17:01.356631+03:00 kinoti-HP-EliteBook-840-G3 CRON[78938]: pam_unix(cron:session): session closed for user root
+2026-06-26T06:25:01.387950+03:00 kinoti-HP-EliteBook-840-G3 CRON[79056]: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+2026-06-26T06:25:01.399624+03:00 kinoti-HP-EliteBook-840-G3 CRON[79056]: pam_unix(cron:session): session closed for user root
+
+=========================================
+End of Report
