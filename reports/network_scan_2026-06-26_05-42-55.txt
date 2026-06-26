@@ -1,0 +1,23 @@
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2026-06-26 05:42 EAT
+Nmap scan report for _gateway (10.0.0.1)
+Host is up (0.0046s latency).
+Nmap scan report for 10.0.0.251
+Host is up (0.066s latency).
+Nmap scan report for 10.0.1.29
+Host is up (0.047s latency).
+Nmap scan report for 10.0.4.158
+Host is up (0.037s latency).
+Nmap scan report for 10.0.5.110
+Host is up (0.20s latency).
+Nmap scan report for 10.0.6.94
+Host is up (0.067s latency).
+Nmap scan report for 10.0.6.134
+Host is up (0.013s latency).
+Nmap scan report for 10.0.7.29
+Host is up (0.085s latency).
+Nmap scan report for 10.0.12.116
+Host is up (0.0083s latency).
+Nmap scan report for 10.0.14.244
+Host is up (0.028s latency).
+Nmap scan report for 10.0.15.146
+Host is up (0.14s latency).
