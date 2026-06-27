@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>🖥 Device Details</h1>
+
+<div class="device-card">
+
+    <table class="device-details">
+
+        <tr>
+            <th>IP Address</th>
+            <td>{{ device["ip"] or "-" }}</td>
+        </tr>
+
+        <tr>
+            <th>Hostname</th>
+            <td>{{ device["hostname"] or "-" }}</td>
+        </tr>
+
+        <tr>
+            <th>MAC Address</th>
+            <td>{{ device["mac"] or "-" }}</td>
+        </tr>
+
+        <tr>
+            <th>Vendor</th>
+            <td>{{ device["vendor"] or "-" }}</td>
+        </tr>
+
+        <tr>
+            <th>Status</th>
+
+            <td>
+
+                {% if device["status"]=="Online" %}
+
+                    <span class="badge online">
+
+                        🟢 Online
+
+                    </span>
+
+                {% else %}
+
+                    <span class="badge offline">
+
+                        🔴 Offline
+
+                    </span>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <th>Risk</th>
+
+            <td>
+
+                {% if device["risk"]=="Low" %}
+
+                    <span class="badge low">
+
+                        🟢 Low
+
+                    </span>
+
+                {% elif device["risk"]=="Medium" %}
+
+                    <span class="badge medium">
+
+                        🟡 Medium
+
+                    </span>
+
+                {% elif device["risk"]=="High" %}
+
+                    <span class="badge high">
+
+                        🔴 High
+
+                    </span>
+
+                {% else %}
+
+                    {{ device["risk"] }}
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+        <tr>
+            <th>Risk Score</th>
+            <td>{{ device["score"] }}</td>
+        </tr>
+
+        <tr>
+            <th>First Seen</th>
+            <td>{{ device["first_seen"] }}</td>
+        </tr>
+
+        <tr>
+            <th>Last Seen</th>
+            <td>{{ device["last_seen"] }}</td>
+        </tr>
+
+        <tr>
+            <th>Notes</th>
+            <td>{{ device["notes"] or "No notes available." }}</td>
+        </tr>
+
+    </table>
+
+    <br>
+
+    <a href="/devices">
+
+        <button class="back-btn">
+
+            ⬅ Back to Devices
+
+        </button>
+
+    </a>
+
+</div>
+
+{% endblock %}

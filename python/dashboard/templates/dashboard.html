@@ -38,7 +38,7 @@
 
 </div>
 
-<h2>📊 Dashboard Analytics</h2>
+<h2>📊 Network Overview</h2>
 
 <div class="charts">
 
@@ -52,111 +52,85 @@
 
 </div>
 
-<h2>💻 Device Inventory</h2>
+<div class="dashboard-grid">
 
-<input
-    type="text"
-    id="searchInput"
-    placeholder="Search by IP, Hostname or Vendor..."
-    onkeyup="searchTable()">
+    <div class="panel">
 
-<table id="deviceTable">
+        <h2>📋 Latest Devices</h2>
 
-    <thead>
+        <table>
 
-        <tr>
+            <thead>
 
-            <th>IP Address</th>
-            <th>Hostname</th>
-            <th>Vendor</th>
-            <th>Status</th>
-            <th>Risk</th>
+                <tr>
+                    <th>IP</th>
+                    <th>Vendor</th>
+                    <th>Status</th>
+                </tr>
 
-        </tr>
+            </thead>
 
-    </thead>
+            <tbody>
 
-    <tbody>
+            {% for device in devices[:10] %}
 
-    {% for device in devices %}
+                <tr>
 
-        <tr>
+                    <td>{{ device["ip"] or "-" }}</td>
 
-            <td>{{ device[0] or "-" }}</td>
+                    <td>{{ device["vendor"] or "-" }}</td>
 
-            <td>{{ device[1] or "-" }}</td>
+                    <td>
 
-            <td>{{ device[2] or "-" }}</td>
+                        {% if device["status"]=="Online" %}
 
-            <td>
+                            🟢 Online
 
-                {% if device[3] == "Online" %}
-                    <span class="badge online">🟢 Online</span>
-                {% else %}
-                    <span class="badge offline">🔴 Offline</span>
-                {% endif %}
+                        {% else %}
 
-            </td>
+                            🔴 Offline
 
-            <td>
+                        {% endif %}
 
-                {% if device[4] == "Low" %}
+                    </td>
 
-                    <span class="badge low">🟢 Low</span>
+                </tr>
 
-                {% elif device[4] == "Medium" %}
+            {% endfor %}
 
-                    <span class="badge medium">🟡 Medium</span>
+            </tbody>
 
-                {% elif device[4] == "High" %}
+        </table>
 
-                    <span class="badge high">🔴 High</span>
+    </div>
 
-                {% else %}
+    <div class="panel">
 
-                    <span class="badge unknown">{{ device[4] }}</span>
+        <h2>🚨 Security Summary</h2>
 
-                {% endif %}
+        <ul>
 
-            </td>
+            <li>Total Devices : <strong>{{ stats.total }}</strong></li>
 
-        </tr>
+            <li>Online : <strong>{{ stats.online }}</strong></li>
 
-    {% endfor %}
+            <li>Offline : <strong>{{ stats.offline }}</strong></li>
 
-    </tbody>
+            <li>High Risk : <strong>{{ stats.high }}</strong></li>
 
-</table>
+            <li>Medium Risk : <strong>{{ stats.medium }}</strong></li>
+
+            <li>Low Risk : <strong>{{ stats.low }}</strong></li>
+
+        </ul>
+
+    </div>
+
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-
-function searchTable(){
-
-    let input=document.getElementById("searchInput");
-
-    let filter=input.value.toUpperCase();
-
-    let rows=document.querySelectorAll("#deviceTable tbody tr");
-
-    rows.forEach(function(row){
-
-        if(row.innerText.toUpperCase().includes(filter)){
-
-            row.style.display="";
-
-        }
-
-        else{
-
-            row.style.display="none";
-
-        }
-
-    });
-
-}
 
 new Chart(document.getElementById("riskChart"),{
 
@@ -196,8 +170,6 @@ new Chart(document.getElementById("statusChart"),{
 
         datasets:[{
 
-            label:"Devices",
-
             data:[
                 {{ stats.online }},
                 {{ stats.offline }}
@@ -213,8 +185,6 @@ new Chart(document.getElementById("statusChart"),{
     },
 
     options:{
-
-        responsive:true,
 
         plugins:{
 

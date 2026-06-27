@@ -19,14 +19,14 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import psutil
 import requests
 
-from python.modules.database import (
+from python.core.database import (
     initialize_database,
     save_scan,
     mark_offline_devices,
 )
 
-from python.modules.inventory import get_known_macs
-from python.modules.alerts import new_device
+from python.core.inventory import get_known_macs
+from python.core.alerts import new_device
 
 from rich.console import Console
 from rich.progress import Progress

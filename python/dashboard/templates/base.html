@@ -5,41 +5,45 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Home SOC</title>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
 <body>
 
-<div class="sidebar">
+    <div class="sidebar">
 
-    <h2>🏠 Home SOC</h2>
+        <h2>🏠 Home SOC</h2>
 
-    <a href="/">📊 Dashboard</a>
+        <a href="/">📊 Dashboard</a>
 
-    <a href="/devices">💻 Devices</a>
+        <a href="/devices">💻 Devices</a>
 
-    <a href="/alerts">🚨 Alerts</a>
+        <a href="/alerts">🚨 Alerts</a>
 
-    <a href="/reports">📈 Reports</a>
+        <a href="/reports">📈 Reports</a>
 
-    <a href="/settings">⚙️ Settings</a>
+        <a href="/settings">⚙️ Settings</a>
 
-</div>
+        <hr>
 
-<div class="content">
+        <p class="sidebar-footer">
+            Home SOC v1.0
+        </p>
 
-{% block content %}
+    </div>
 
-{% endblock %}
+    <div class="content">
 
-</div>
+        {% block content %}
+
+        {% endblock %}
+
+    </div>
 
 </body>
 

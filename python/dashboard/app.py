@@ -6,59 +6,65 @@ app = Flask(__name__)
 DB = "data/home_soc.db"
 
 
-def get_stats():
+def get_connection():
     conn = sqlite3.connect(DB)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def get_stats():
+    conn = get_connection()
     cur = conn.cursor()
 
-    total = cur.execute(
-        "SELECT COUNT(*) FROM devices"
-    ).fetchone()[0]
+    stats = {
+        "total": cur.execute(
+            "SELECT COUNT(*) FROM devices"
+        ).fetchone()[0],
 
-    online = cur.execute(
-        "SELECT COUNT(*) FROM devices WHERE status='Online'"
-    ).fetchone()[0]
+        "online": cur.execute(
+            "SELECT COUNT(*) FROM devices WHERE status='Online'"
+        ).fetchone()[0],
 
-    offline = cur.execute(
-        "SELECT COUNT(*) FROM devices WHERE status='Offline'"
-    ).fetchone()[0]
+        "offline": cur.execute(
+            "SELECT COUNT(*) FROM devices WHERE status='Offline'"
+        ).fetchone()[0],
 
-    high = cur.execute(
-        "SELECT COUNT(*) FROM devices WHERE risk='High'"
-    ).fetchone()[0]
+        "high": cur.execute(
+            "SELECT COUNT(*) FROM devices WHERE risk='High'"
+        ).fetchone()[0],
 
-    medium = cur.execute(
-        "SELECT COUNT(*) FROM devices WHERE risk='Medium'"
-    ).fetchone()[0]
+        "medium": cur.execute(
+            "SELECT COUNT(*) FROM devices WHERE risk='Medium'"
+        ).fetchone()[0],
 
-    low = cur.execute(
-        "SELECT COUNT(*) FROM devices WHERE risk='Low'"
-    ).fetchone()[0]
+        "low": cur.execute(
+            "SELECT COUNT(*) FROM devices WHERE risk='Low'"
+        ).fetchone()[0],
+    }
 
     conn.close()
 
-    return {
-        "total": total,
-        "online": online,
-        "offline": offline,
-        "high": high,
-        "medium": medium,
-        "low": low,
-    }
+    return stats
 
 
 def get_devices():
 
-    conn = sqlite3.connect(DB)
-
+    conn = get_connection()
     cur = conn.cursor()
 
     cur.execute("""
         SELECT
+            id,
             ip,
             hostname,
+            mac,
             vendor,
             status,
-            risk
+            risk,
+            score,
+            first_seen,
+            last_seen,
+            notes
         FROM devices
         ORDER BY ip
     """)
@@ -70,9 +76,37 @@ def get_devices():
     return devices
 
 
+def get_device(device_id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            id,
+            ip,
+            hostname,
+            mac,
+            vendor,
+            status,
+            risk,
+            score,
+            first_seen,
+            last_seen,
+            notes
+        FROM devices
+        WHERE id = ?
+    """, (device_id,))
+
+    device = cur.fetchone()
+
+    conn.close()
+
+    return device
+
+
 @app.route("/")
 def dashboard():
-
     return render_template(
         "dashboard.html",
         stats=get_stats(),
@@ -82,29 +116,33 @@ def dashboard():
 
 @app.route("/devices")
 def devices():
-
     return render_template(
         "devices.html",
         devices=get_devices()
     )
 
 
+@app.route("/device/<int:device_id>")
+def device(device_id):
+    return render_template(
+        "device.html",
+        device=get_device(device_id)
+    )
+
+
 @app.route("/alerts")
 def alerts():
-
-    return "<h1>🚨 Alerts Page (Coming Soon)</h1>"
+    return render_template("alerts.html")
 
 
 @app.route("/reports")
 def reports():
-
-    return "<h1>📈 Reports Page (Coming Soon)</h1>"
+    return render_template("reports.html")
 
 
 @app.route("/settings")
 def settings():
-
-    return "<h1>⚙️ Settings Page (Coming Soon)</h1>"
+    return render_template("settings.html")
 
 
 if __name__ == "__main__":
