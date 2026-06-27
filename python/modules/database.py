@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from datetime import datetime
 
 DB_PATH = Path("data/home_soc.db")
 
@@ -53,7 +54,97 @@ def initialize_database():
 
     conn.commit()
     conn.close()
+def save_scan(discovered):
+    """
+    Save a completed network scan to the database.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
 
+    # Timestamp for this scan
+    scan_time = datetime.now().isoformat(timespec="seconds")
+
+    # Create a new scan record
+    cursor.execute(
+        "INSERT INTO scans (scan_time) VALUES (?)",
+        (scan_time,)
+    )
+
+    scan_id = cursor.lastrowid
+
+    for device in discovered:
+
+        # Insert scan result
+        cursor.execute("""
+            INSERT INTO scan_results (
+                scan_id,
+                ip,
+                hostname,
+                mac,
+                vendor,
+                ports,
+                risk,
+                score
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            scan_id,
+            device["ip"],
+            device["hostname"],
+            device["mac"],
+            device["vendor"],
+            device["ports"],
+            device["risk"],
+            device["score"],
+        ))
+
+        # Update device inventory
+        if device["mac"] and device["mac"] != "-":
+
+            cursor.execute("""
+                SELECT id
+                FROM devices
+                WHERE mac = ?
+            """, (device["mac"],))
+
+            existing = cursor.fetchone()
+
+            if existing:
+
+                cursor.execute("""
+                    UPDATE devices
+                    SET hostname = ?,
+                        vendor = ?,
+                        last_seen = ?
+                    WHERE mac = ?
+                """, (
+                    device["hostname"],
+                    device["vendor"],
+                    scan_time,
+                    device["mac"],
+                ))
+
+            else:
+
+                cursor.execute("""
+                    INSERT INTO devices (
+                        mac,
+                        hostname,
+                        vendor,
+                        first_seen,
+                        last_seen
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    device["mac"],
+                    device["hostname"],
+                    device["vendor"],
+                    scan_time,
+                    scan_time,
+                ))
+
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
     initialize_database()

@@ -18,6 +18,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import psutil
 import requests
+
+from python.modules.database import (
+           initialize_database,
+           save_scan,
+)
 from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table
@@ -297,14 +302,18 @@ def scan_host(ip):
 
     risk, score = calculate_risk(open_ports)
 
+    # Ignore inactive hosts
+    if not alive:
+           return None
+
     return {
-        "ip": ip,
-        "hostname": hostname,
-        "mac": mac,
-        "vendor": vendor,
-        "ports": ", ".join(map(str, open_ports)) if open_ports else "-",
-        "risk": risk,
-        "score": score,
+             "ip": ip,
+             "hostname": hostname,
+             "mac": mac,
+             "vendor": vendor,
+             "ports": ", ".join(map(str, open_ports)) if open_ports else "-",
+             "risk": risk,
+             "score": score,
     }
 # -----------------------------
 # Network Scan Engine
@@ -459,13 +468,16 @@ def print_security_summary(discovered):
 # -----------------------------
 
 def main():
-    """
-    Program entry point.
-    """
+    initialize_database()
 
     discovered = run_network_scan()
-    print_security_summary(discovered)
 
+    print(f"\nDEBUG: Devices found = {len(discovered)}")
+
+    save_scan(discovered)
+
+    print_security_summary(discovered)
 
 if __name__ == "__main__":
     main()
+
