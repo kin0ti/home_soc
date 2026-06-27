@@ -21,15 +21,20 @@ def initialize_database():
     cursor = conn.cursor()
 
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS devices (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            mac TEXT UNIQUE,
-            hostname TEXT,
-            vendor TEXT,
-            first_seen TEXT,
-            last_seen TEXT
-        )
-    """)
+       CREATE TABLE IF NOT EXISTS devices (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           mac TEXT UNIQUE,
+           ip TEXT,
+           hostname TEXT,
+           vendor TEXT,
+           first_seen TEXT,
+           last_seen TEXT,
+           status TEXT,
+           risk TEXT,
+           score INTEGER,
+           notes TEXT
+       )
+   """)
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS scans (
@@ -51,6 +56,27 @@ def initialize_database():
             score INTEGER
         )
     """)
+
+    conn.commit()
+
+    # Upgrade existing databases safely
+    existing_columns = {
+        row[1] for row in cursor.execute("PRAGMA table_info(devices)")
+    }
+
+    new_columns = {
+        "ip": "TEXT",
+        "status": "TEXT",
+        "risk": "TEXT",
+        "score": "INTEGER",
+        "notes": "TEXT",
+    }
+
+    for column, datatype in new_columns.items():
+        if column not in existing_columns:
+            cursor.execute(
+               f"ALTER TABLE devices ADD COLUMN {column} {datatype}"
+           )
 
     conn.commit()
     conn.close()
@@ -113,14 +139,22 @@ def save_scan(discovered):
 
                 cursor.execute("""
                     UPDATE devices
-                    SET hostname = ?,
+                    SET ip = ?,
+                        hostname = ?,
                         vendor = ?,
-                        last_seen = ?
+                        last_seen = ?,
+                        status = ?,
+                        risk = ?,
+                        score = ?
                     WHERE mac = ?
                 """, (
+                    device["ip"],
                     device["hostname"],
                     device["vendor"],
                     scan_time,
+                    "Online",
+                    device["risk"],
+                    device["score"],
                     device["mac"],
                 ))
 
@@ -129,18 +163,28 @@ def save_scan(discovered):
                 cursor.execute("""
                     INSERT INTO devices (
                         mac,
+                        ip,
                         hostname,
                         vendor,
                         first_seen,
-                        last_seen
+                        last_seen,
+                        status,
+                        risk,
+                        score
                     )
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    device["mac"],
-                    device["hostname"],
-                    device["vendor"],
-                    scan_time,
-                    scan_time,
+                    (
+                     device["mac"],
+                     device["ip"],
+                     device["hostname"],
+                     device["vendor"],
+                     scan_time,
+                     scan_time,
+                     "Online",
+                     device["risk"],
+                     device["score"],
+                    )
                 ))
 
     conn.commit()
