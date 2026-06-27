@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>🏠 Home SOC Dashboard</h1>
+
+<div class="cards">
+
+    <div class="card">
+        <h2>{{ stats.total }}</h2>
+        <p>Total Devices</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ stats.online }}</h2>
+        <p>Online Devices</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ stats.offline }}</h2>
+        <p>Offline Devices</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ stats.low }}</h2>
+        <p>Low Risk</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ stats.medium }}</h2>
+        <p>Medium Risk</p>
+    </div>
+
+    <div class="card">
+        <h2>{{ stats.high }}</h2>
+        <p>High Risk</p>
+    </div>
+
+</div>
+
+<h2>📊 Dashboard Analytics</h2>
+
+<div class="charts">
+
+    <div class="chart-card">
+        <canvas id="riskChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+        <canvas id="statusChart"></canvas>
+    </div>
+
+</div>
+
+<h2>💻 Device Inventory</h2>
+
+<input
+    type="text"
+    id="searchInput"
+    placeholder="Search by IP, Hostname or Vendor..."
+    onkeyup="searchTable()">
+
+<table id="deviceTable">
+
+    <thead>
+
+        <tr>
+
+            <th>IP Address</th>
+            <th>Hostname</th>
+            <th>Vendor</th>
+            <th>Status</th>
+            <th>Risk</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+    {% for device in devices %}
+
+        <tr>
+
+            <td>{{ device[0] or "-" }}</td>
+
+            <td>{{ device[1] or "-" }}</td>
+
+            <td>{{ device[2] or "-" }}</td>
+
+            <td>
+
+                {% if device[3] == "Online" %}
+                    <span class="badge online">🟢 Online</span>
+                {% else %}
+                    <span class="badge offline">🔴 Offline</span>
+                {% endif %}
+
+            </td>
+
+            <td>
+
+                {% if device[4] == "Low" %}
+
+                    <span class="badge low">🟢 Low</span>
+
+                {% elif device[4] == "Medium" %}
+
+                    <span class="badge medium">🟡 Medium</span>
+
+                {% elif device[4] == "High" %}
+
+                    <span class="badge high">🔴 High</span>
+
+                {% else %}
+
+                    <span class="badge unknown">{{ device[4] }}</span>
+
+                {% endif %}
+
+            </td>
+
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+function searchTable(){
+
+    let input=document.getElementById("searchInput");
+
+    let filter=input.value.toUpperCase();
+
+    let rows=document.querySelectorAll("#deviceTable tbody tr");
+
+    rows.forEach(function(row){
+
+        if(row.innerText.toUpperCase().includes(filter)){
+
+            row.style.display="";
+
+        }
+
+        else{
+
+            row.style.display="none";
+
+        }
+
+    });
+
+}
+
+new Chart(document.getElementById("riskChart"),{
+
+    type:"pie",
+
+    data:{
+
+        labels:["Low","Medium","High"],
+
+        datasets:[{
+
+            data:[
+                {{ stats.low }},
+                {{ stats.medium }},
+                {{ stats.high }}
+            ],
+
+            backgroundColor:[
+                "#28a745",
+                "#ffc107",
+                "#dc3545"
+            ]
+
+        }]
+
+    }
+
+});
+
+new Chart(document.getElementById("statusChart"),{
+
+    type:"bar",
+
+    data:{
+
+        labels:["Online","Offline"],
+
+        datasets:[{
+
+            label:"Devices",
+
+            data:[
+                {{ stats.online }},
+                {{ stats.offline }}
+            ],
+
+            backgroundColor:[
+                "#28a745",
+                "#dc3545"
+            ]
+
+        }]
+
+    },
+
+    options:{
+
+        responsive:true,
+
+        plugins:{
+
+            legend:{
+
+                display:false
+
+            }
+
+        }
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

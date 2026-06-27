@@ -189,29 +189,46 @@ def get_mac(ip):
 # Vendor Lookup
 # -----------------------------
 
+def is_randomized_mac(mac):
+    """
+    Return True if the MAC address is locally administered
+    (randomized/private MAC).
+    """
+    try:
+        first_byte = int(mac.split(":")[0], 16)
+        return (first_byte & 0x02) != 0
+    except Exception:
+        return False
+
+
 def get_vendor(mac):
     """
     Lookup the vendor from a MAC address.
     """
 
-    if mac == "-":
-        return "-"
+    if not mac or mac == "-":
+        return "Unknown"
+
+    # Randomized/private MAC addresses
+    if is_randomized_mac(mac):
+        return "Randomized MAC"
 
     try:
-
         response = requests.get(
             f"https://api.macvendors.com/{mac}",
             timeout=2
         )
 
         if response.status_code == 200:
-            return response.text.strip()
+            vendor = response.text.strip()
+
+            if vendor:
+                return vendor
 
     except Exception:
         pass
 
-    return "-"
-
+    return "Unknown Vendor"
 
 # -----------------------------
 # TCP Port Scan
