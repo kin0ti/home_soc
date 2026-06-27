@@ -20,9 +20,14 @@ import psutil
 import requests
 
 from python.modules.database import (
-           initialize_database,
-           save_scan,
+    initialize_database,
+    save_scan,
+    mark_offline_devices,
 )
+
+from python.modules.inventory import get_known_macs
+from python.modules.alerts import new_device
+
 from rich.console import Console
 from rich.progress import Progress
 from rich.table import Table
@@ -470,14 +475,28 @@ def print_security_summary(discovered):
 def main():
     initialize_database()
 
+    # Snapshot of devices already known before scanning
+    known_macs = get_known_macs()
+
     discovered = run_network_scan()
+
+    active_macs = {
+        device["mac"]
+        for device in discovered
+        if device["mac"] and device["mac"] != "-"
+    }
 
     print(f"\nDEBUG: Devices found = {len(discovered)}")
 
+    # Alert on newly discovered devices
+    for device in discovered:
+        mac = device.get("mac")
+
+        if mac and mac != "-" and mac not in known_macs:
+            new_device(device)
+
     save_scan(discovered)
-
+    mark_offline_devices(active_macs)
     print_security_summary(discovered)
-
 if __name__ == "__main__":
     main()
-
