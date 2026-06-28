@@ -2,8 +2,86 @@
 
 {% block content %}
 
-<h2>Alerts</h2>
+<h1>🚨 Security Alerts</h1>
 
-<p>This page is under construction.</p>
+<p>
+    Current alerts generated from the latest network inventory.
+</p>
+
+{% if alerts %}
+
+<div class="card">
+
+    <div class="card-header">
+
+        Active Alerts
+
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-dark table-hover">
+
+            <thead>
+
+                <tr>
+
+                    <th>Severity</th>
+                    <th>Type</th>
+                    <th>Description</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for alert in alerts %}
+
+                <tr>
+
+                    <td>
+
+                        <span class="badge bg-{{ alert.severity }}">
+
+                            {{ alert.severity|upper }}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        {{ alert.type }}
+
+                    </td>
+
+                    <td>
+
+                        {{ alert.message }}
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% else %}
+
+<div class="alert alert-success">
+
+    ✅ No active security alerts.
+
+</div>
+
+{% endif %}
 
 {% endblock %}

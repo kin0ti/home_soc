@@ -75,6 +75,64 @@ def get_devices():
 
     return devices
 
+def get_alerts():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    alerts = []
+
+    # High Risk Devices
+    cur.execute("""
+        SELECT hostname, ip, risk
+        FROM devices
+        WHERE risk='High'
+        ORDER BY hostname
+    """)
+
+    for row in cur.fetchall():
+
+        alerts.append({
+            "type": "High Risk",
+            "severity": "danger",
+            "message": f"{row['hostname'] or row['ip']} is marked HIGH risk"
+        })
+
+    # Offline Devices
+    cur.execute("""
+        SELECT hostname, ip
+        FROM devices
+        WHERE status='Offline'
+        ORDER BY hostname
+    """)
+
+    for row in cur.fetchall():
+
+        alerts.append({
+            "type": "Offline",
+            "severity": "secondary",
+            "message": f"{row['hostname'] or row['ip']} is offline"
+        })
+
+    # Medium Risk Devices
+    cur.execute("""
+        SELECT hostname, ip
+        FROM devices
+        WHERE risk='Medium'
+        ORDER BY hostname
+    """)
+
+    for row in cur.fetchall():
+
+        alerts.append({
+            "type": "Medium Risk",
+            "severity": "warning",
+            "message": f"{row['hostname'] or row['ip']} requires attention"
+        })
+
+    conn.close()
+
+    return alerts
 
 def get_device(device_id):
 
@@ -132,8 +190,11 @@ def device(device_id):
 
 @app.route("/alerts")
 def alerts():
-    return render_template("alerts.html")
 
+    return render_template(
+        "alerts.html",
+        alerts=get_alerts()
+    )
 
 @app.route("/reports")
 def reports():
