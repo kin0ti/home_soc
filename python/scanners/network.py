@@ -1,38 +1,117 @@
 #!/usr/bin/env python3
 """
-Home SOC - Network Scanner
+Home SOC v2.0
+Advanced Network Scanner
 
 Performs:
 - Local network discovery
-- ARP neighbor discovery
+- ARP neighbour discovery
 - Ping sweep
 - TCP port scan
 - MAC vendor lookup
 - Risk scoring
+- SQLite inventory integration
 """
 
+from __future__ import annotations
+
 import ipaddress
+import json
+import logging
 import socket
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
+from typing import Any
 
 import psutil
 import requests
 
+from rich.console import Console
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+)
+from rich.table import Table
+
 from python.core.database import (
     initialize_database,
     save_scan,
-    mark_offline_devices,
 )
 
-from python.core.inventory import get_known_macs
-from python.core.alerts import new_device
+from python.core.inventory import (
+    get_known_macs,
+)
 
-from rich.console import Console
-from rich.progress import Progress
-from rich.table import Table
+from python.core.alerts import (
+    new_device,
+)
+
+logger = logging.getLogger(__name__)
 
 console = Console()
+
+VENDOR_CACHE = Path("data/vendor_cache.json")
+
+# ---------------------------------------------------------
+# Vendor Cache
+# ---------------------------------------------------------
+
+def load_vendor_cache() -> dict[str, str]:
+    """
+    Load cached MAC vendor lookups.
+    """
+
+    if not VENDOR_CACHE.exists():
+        return {}
+
+    try:
+
+        with VENDOR_CACHE.open(
+            "r",
+            encoding="utf-8",
+        ) as fp:
+
+            return json.load(fp)
+
+    except Exception:
+
+        logger.warning(
+            "Unable to read vendor cache."
+        )
+
+        return {}
+
+
+def save_vendor_cache(
+    cache: dict[str, str],
+) -> None:
+    """
+    Save vendor cache to disk.
+    """
+
+    VENDOR_CACHE.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    with VENDOR_CACHE.open(
+        "w",
+        encoding="utf-8",
+    ) as fp:
+
+        json.dump(
+            cache,
+            fp,
+            indent=4,
+            sort_keys=True,
+        )
+
+
+_VENDOR_CACHE = load_vendor_cache()
 
 # -----------------------------
 # Configuration
@@ -200,33 +279,50 @@ def is_randomized_mac(mac):
     except Exception:
         return False
 
-
-def get_vendor(mac):
+def get_vendor(mac: str) -> str:
     """
-    Lookup the vendor from a MAC address.
+    Resolve a MAC address to a vendor.
+    Results are cached locally.
     """
 
     if not mac or mac == "-":
         return "Unknown"
 
-    # Randomized/private MAC addresses
     if is_randomized_mac(mac):
         return "Randomized MAC"
 
+    prefix = mac.upper()[:8]
+
+    if prefix in _VENDOR_CACHE:
+        return _VENDOR_CACHE[prefix]
+
     try:
+
         response = requests.get(
             f"https://api.macvendors.com/{mac}",
-            timeout=2
+            timeout=2,
         )
 
         if response.status_code == 200:
+
             vendor = response.text.strip()
 
             if vendor:
+
+                _VENDOR_CACHE[prefix] = vendor
+
+                save_vendor_cache(
+                    _VENDOR_CACHE,
+                )
+
                 return vendor
 
-    except Exception:
-        pass
+    except Exception as exc:
+
+        logger.debug(
+            "Vendor lookup failed: %s",
+            exc,
+        )
 
     return "Unknown Vendor"
 
@@ -234,34 +330,59 @@ def get_vendor(mac):
 # TCP Port Scan
 # -----------------------------
 
-def scan_ports(ip):
+
+def scan_port(ip: str, port: int) -> int | None:
     """
-    Scan common TCP ports.
+    Scan a single TCP port.
+    Returns the port number if it is open.
     """
 
-    open_ports = []
+    try:
 
-    for port in COMMON_PORTS:
-
-        try:
-
-            sock = socket.socket(
-                socket.AF_INET,
-                socket.SOCK_STREAM
-            )
+        with socket.socket(
+            socket.AF_INET,
+            socket.SOCK_STREAM,
+        ) as sock:
 
             sock.settimeout(PORT_TIMEOUT)
 
             if sock.connect_ex((str(ip), port)) == 0:
-                open_ports.append(port)
+                return port
 
-            sock.close()
+    except Exception as exc:
 
-        except Exception:
-            pass
+        logger.debug(
+            "Port %s on %s failed: %s",
+            port,
+            ip,
+            exc,
+        )
 
-    return open_ports
+    return None
 
+
+def scan_ports(ip: str) -> list[int]:
+    """
+    Scan common TCP ports concurrently.
+    """
+
+    open_ports: list[int] = []
+
+    with ThreadPoolExecutor(max_workers=32) as executor:
+
+        futures = {
+            executor.submit(scan_port, ip, port): port
+            for port in COMMON_PORTS
+        }
+
+        for future in as_completed(futures):
+
+            result = future.result()
+
+            if result is not None:
+                open_ports.append(result)
+
+    return sorted(open_ports)
 
 # -----------------------------
 # Risk Scoring
@@ -302,165 +423,279 @@ def calculate_risk(open_ports):
 # Host Scanner
 # -----------------------------
 
-def scan_host(ip):
+def scan_host(ip: str) -> dict[str, Any] | None:
     """
-    Scan one host.
+    Scan a single host and return a normalized device record.
     """
 
     ip = str(ip)
 
+    logger.debug("Scanning host %s", ip)
+
     alive = ping(ip)
+
+    if not alive:
+        return None
 
     hostname = get_hostname(ip)
 
-    mac = get_mac(ip)
+    if not hostname or hostname == "-":
+        hostname = "Unknown"
+
+    mac = get_mac(ip).upper()
+
+    if not mac:
+        mac = "-"
 
     vendor = get_vendor(mac)
 
-    if alive:
-        open_ports = scan_ports(ip)
-    else:
-        open_ports = []
+    open_ports = scan_ports(ip)
 
     risk, score = calculate_risk(open_ports)
 
-    # Ignore inactive hosts
-    if not alive:
-           return None
+    # Simple fingerprint
+    if 22 in open_ports:
+        device_type = "Linux/Unix"
+
+    elif 3389 in open_ports:
+        device_type = "Windows"
+
+    elif 80 in open_ports or 443 in open_ports:
+        device_type = "Web Device"
+
+    elif 445 in open_ports:
+        device_type = "File Server"
+
+    else:
+        device_type = "Unknown"
 
     return {
-             "ip": ip,
-             "hostname": hostname,
-             "mac": mac,
-             "vendor": vendor,
-             "ports": ", ".join(map(str, open_ports)) if open_ports else "-",
-             "risk": risk,
-             "score": score,
+
+        "ip": ip,
+
+        "hostname": hostname,
+
+        "mac": mac,
+
+        "vendor": vendor,
+
+        "device_type": device_type,
+
+        "ports": (
+            ", ".join(
+                map(str, open_ports)
+            )
+            if open_ports
+            else "-"
+        ),
+
+        "open_ports": open_ports,
+
+        "risk": risk,
+
+        "score": score,
+
+        "alive": True,
+
+        "scan_time": time.strftime(
+            "%Y-%m-%d %H:%M:%S"
+        ),
+
     }
+
 # -----------------------------
 # Network Scan Engine
 # -----------------------------
-
-def run_network_scan():
+def run_network_scan() -> list[dict[str, Any]]:
     """
     Discover and scan devices on the local network.
     """
 
     network = get_local_network()
-    
 
-    console.print(f"\n[cyan]Scanning network {network}[/cyan]\n")
+    console.print(
+        f"\n[bold cyan]Scanning network[/bold cyan] {network}\n"
+    )
 
-    # Hosts from subnet
+    start_time = time.perf_counter()
+
+    # ---------------------------------------------------------
+    # Build host list
+    # ---------------------------------------------------------
+
     hosts = {str(ip) for ip in network.hosts()}
 
-    # Add hosts already in ARP cache
     for neighbor in get_neighbors():
         hosts.add(neighbor["ip"])
 
-    # Keep IPv4 only
-    hosts = [
-        ip for ip in hosts
-        if ":" not in ip
-    ]
-
     hosts = sorted(
-        hosts,
-        key=lambda ip: ipaddress.ip_address(ip)
+        (
+            ip
+            for ip in hosts
+            if ":" not in ip
+        ),
+        key=ipaddress.ip_address,
     )
 
-    discovered = []
+    logger.info(
+        "Scanning %s hosts",
+        len(hosts),
+    )
 
-    with Progress() as progress:
+    discovered: list[dict[str, Any]] = []
+
+    with Progress(
+
+        SpinnerColumn(),
+
+        TextColumn(
+            "[progress.description]{task.description}"
+        ),
+
+        BarColumn(),
+
+        TaskProgressColumn(),
+
+    ) as progress:
 
         task = progress.add_task(
-            "[green]Scanning hosts...",
-            total=len(hosts)
+            "Scanning...",
+            total=len(hosts),
         )
 
-        with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+        with ThreadPoolExecutor(
+            max_workers=MAX_THREADS,
+        ) as executor:
 
             futures = {
-                executor.submit(scan_host, ip): ip
+                executor.submit(
+                    scan_host,
+                    ip,
+                ): ip
                 for ip in hosts
             }
 
             for future in as_completed(futures):
+
+                ip = futures[future]
 
                 try:
 
                     device = future.result()
 
                     if device:
-                        discovered.append(device)
 
-                except Exception:
-                    pass
+                        discovered.append(
+                            device
+                        )
 
-                progress.update(task, advance=1)
+                except Exception as exc:
+
+                    logger.exception(
+                        "Host %s failed: %s",
+                        ip,
+                        exc,
+                    )
+
+                finally:
+
+                    progress.update(
+                        task,
+                        advance=1,
+                    )
 
     discovered.sort(
-        key=lambda d: ipaddress.ip_address(d["ip"])
+        key=lambda d: ipaddress.ip_address(
+            d["ip"]
+        )
+    )
+
+    duration = (
+        time.perf_counter()
+        - start_time
+    )
+
+    logger.info(
+        "Finished scan in %.2f seconds",
+        duration,
+    )
+
+    console.print(
+        f"\n[green]Completed in "
+        f"{duration:.2f} seconds[/green]\n"
     )
 
     table = Table(
         title="Discovered Devices",
-        expand=True
+        expand=True,
     )
 
     table.add_column(
-        "IP Address",
+        "IP",
         style="cyan",
-        no_wrap=True
+        no_wrap=True,
     )
 
     table.add_column(
         "Hostname",
-        style="green"
+        style="green",
     )
 
     table.add_column(
-        "MAC Address",
+        "MAC",
         style="magenta",
-        no_wrap=True
     )
 
     table.add_column(
         "Vendor",
-        style="blue"
+        style="blue",
     )
 
     table.add_column(
-        "Open Ports",
-        style="yellow"
+        "Ports",
+        style="yellow",
     )
 
     table.add_column(
         "Risk",
         style="red",
-        justify="center"
+        justify="center",
     )
 
     table.add_column(
         "Score",
-        justify="right"
+        justify="right",
     )
 
     for device in discovered:
 
         table.add_row(
+
             device["ip"],
+
             device["hostname"],
+
             device["mac"],
+
             device["vendor"],
+
             device["ports"],
+
             device["risk"],
-            str(device["score"])
+
+            str(device["score"]),
+
         )
 
     console.print(table)
 
+    logger.info(
+        "%s devices discovered",
+        len(discovered),
+    )
+
     return discovered
+
 # -----------------------------
 # Security Summary
 # -----------------------------

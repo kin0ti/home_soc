@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Scan History</h2>
+
+<p>Recent network scans will appear here.</p>
+
+{% if scans %}
+
+<table>
+
+    <tr>
+        <th>ID</th>
+        <th>Timestamp</th>
+    </tr>
+
+    {% for scan in scans %}
+
+    <tr>
+
+        <td>
+            <a href="/scan/{{ scan.id }}">
+                {{ scan.id }}
+            </a>
+        </td>
+
+        <td>{{ scan.timestamp }}</td>
+
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No scans available.</p>
+
+{% endif %}
+
+{% endblock %}

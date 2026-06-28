@@ -1,63 +1,87 @@
 """
-Home SOC - Device Inventory
+Home SOC v2.0
+Device Inventory Management
 """
 
-import sqlite3
-from pathlib import Path
+from __future__ import annotations
+
+from typing import Any, Dict, List, Set
 
 from rich.console import Console
 from rich.table import Table
 
-DB_PATH = Path("data/home_soc.db")
+from python.core.database import (
+    get_devices,
+    get_device,
+)
 
 console = Console()
 
 
-def get_connection():
-    return sqlite3.connect(DB_PATH)
-def get_known_macs():
-    """
-    Return a set of all MAC addresses currently in the inventory.
-    """
-    conn = get_connection()
-    cursor = conn.cursor()
+# ----------------------------------------------------------
+# Inventory Queries
+# ----------------------------------------------------------
 
-    cursor.execute("SELECT mac FROM devices")
+def get_known_macs() -> Set[str]:
+    """
+    Return every MAC address currently stored
+    in the Home SOC inventory.
+    """
 
-    macs = {
-        row[0]
-        for row in cursor.fetchall()
-        if row[0]
+    return {
+        device["mac"]
+        for device in get_devices()
+        if device.get("mac")
     }
 
-    conn.close()
 
-    return macs
+def get_online_devices() -> List[Dict[str, Any]]:
+    """
+    Return devices currently marked Online.
+    """
 
-def show_inventory():
-    conn = get_connection()
-    cursor = conn.cursor()
+    return [
+        device
+        for device in get_devices()
+        if device.get("status") == "Online"
+    ]
 
-    cursor.execute("""
-        SELECT
-            ip,
-            hostname,
-            mac,
-            vendor,
-            status,
-            risk,
-            score,
-            first_seen,
-            last_seen
-        FROM devices
-        ORDER BY ip
-    """)
 
-    rows = cursor.fetchall()
+def get_offline_devices() -> List[Dict[str, Any]]:
+    """
+    Return devices currently marked Offline.
+    """
 
-    conn.close()
+    return [
+        device
+        for device in get_devices()
+        if device.get("status") == "Offline"
+    ]
 
-    table = Table(title="Device Inventory", expand=True)
+
+def find_device(mac: str) -> Dict[str, Any] | None:
+    """
+    Lookup a device by MAC address.
+    """
+
+    return get_device(mac)
+
+
+# ----------------------------------------------------------
+# Display Inventory
+# ----------------------------------------------------------
+
+def show_inventory() -> None:
+    """
+    Pretty-print the inventory.
+    """
+
+    devices = get_devices()
+
+    table = Table(
+        title="Home SOC Device Inventory",
+        expand=True,
+    )
 
     table.add_column("IP", style="cyan")
     table.add_column("Hostname", style="green")
@@ -69,32 +93,87 @@ def show_inventory():
     table.add_column("First Seen")
     table.add_column("Last Seen")
 
-    for row in rows:
-        table.add_row(*[str(x) for x in row])
+    for device in devices:
+
+        table.add_row(
+            str(device.get("ip", "")),
+            str(device.get("hostname", "")),
+            str(device.get("mac", "")),
+            str(device.get("vendor", "")),
+            str(device.get("status", "")),
+            str(device.get("risk", "")),
+            str(device.get("score", "")),
+            str(device.get("first_seen", "")),
+            str(device.get("last_seen", "")),
+        )
 
     console.print(table)
 
-def get_online_devices():
+
+# ----------------------------------------------------------
+# Statistics
+# ----------------------------------------------------------
+
+def inventory_summary() -> Dict[str, int]:
     """
-    Return all devices currently marked Online.
+    Return useful inventory statistics.
     """
-    conn = get_connection()
-    cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT mac, ip, hostname
-        FROM devices
-        WHERE status='Online'
-    """)
+    devices = get_devices()
 
-    rows = cursor.fetchall()
+    return {
+        "total": len(devices),
+        "online": sum(
+            d.get("status") == "Online"
+            for d in devices
+        ),
+        "offline": sum(
+            d.get("status") == "Offline"
+            for d in devices
+        ),
+        "high_risk": sum(
+            d.get("risk") == "High"
+            for d in devices
+        ),
+        "medium_risk": sum(
+            d.get("risk") == "Medium"
+            for d in devices
+        ),
+        "low_risk": sum(
+            d.get("risk") == "Low"
+            for d in devices
+        ),
+    }
 
-    conn.close()
 
-    return rows
+# ----------------------------------------------------------
+# CLI
+# ----------------------------------------------------------
 
-def main():
+def main() -> None:
+
     show_inventory()
+
+    stats = inventory_summary()
+
+    console.print()
+
+    console.print(
+        f"[bold cyan]Total Devices:[/bold cyan] {stats['total']}"
+    )
+
+    console.print(
+        f"[green]Online:[/green] {stats['online']}"
+    )
+
+    console.print(
+        f"[yellow]Offline:[/yellow] {stats['offline']}"
+    )
+
+    console.print(
+        f"[red]High Risk:[/red] {stats['high_risk']}"
+    )
+
 
 if __name__ == "__main__":
     main()

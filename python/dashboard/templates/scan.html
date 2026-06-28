@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Scan Results</h2>
+
+{% if scan %}
+
+<table>
+
+<tr>
+    <th>IP</th>
+    <th>Hostname</th>
+    <th>MAC</th>
+    <th>Vendor</th>
+    <th>Ports</th>
+    <th>Risk</th>
+    <th>Score</th>
+</tr>
+
+{% for device in scan %}
+
+<tr>
+
+<td>{{ device.ip }}</td>
+<td>{{ device.hostname }}</td>
+<td>{{ device.mac }}</td>
+<td>{{ device.vendor }}</td>
+<td>{{ device.ports }}</td>
+<td>{{ device.risk }}</td>
+<td>{{ device.score }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No results.</p>
+
+{% endif %}
+
+{% endblock %}
