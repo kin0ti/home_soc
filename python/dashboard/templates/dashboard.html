@@ -2,127 +2,232 @@
 
 {% block content %}
 
-<h1>🏠 Home SOC Dashboard</h1>
+<div class="container-fluid">
 
-<div class="cards">
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    <div class="card">
-        <h2>{{ stats.total }}</h2>
-        <p>Total Devices</p>
+        <div>
+            <h1 class="mb-1">🛡️ Home SOC Dashboard</h1>
+            <p class="text-secondary">
+                Home Security Operations Center v2.0
+            </p>
+        </div>
+
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-lg-3 col-md-6">
+
+            <div class="card text-center shadow-sm">
+
+                <div class="card-body">
+
+                    <h5>Total Devices</h5>
+
+                    <h2 class="display-5 text-info">
+                        {{ stats.total }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+
+            <div class="card text-center shadow-sm">
+
+                <div class="card-body">
+
+                    <h5>Online</h5>
+
+                    <h2 class="display-5 text-success">
+                        {{ stats.online }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+
+            <div class="card text-center shadow-sm">
+
+                <div class="card-body">
+
+                    <h5>Offline</h5>
+
+                    <h2 class="display-5 text-danger">
+                        {{ stats.offline }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+
+            <div class="card text-center shadow-sm">
+
+                <div class="card-body">
+
+                    <h5>High Risk</h5>
+
+                    <h2 class="display-5 text-warning">
+                        {{ stats.high }}
+                    </h2>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-lg-6 mb-4">
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    Risk Distribution
+
+                </div>
+
+                <div class="card-body">
+
+                    <canvas id="riskChart"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-6 mb-4">
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    Device Status
+
+                </div>
+
+                <div class="card-body">
+
+                    <canvas id="statusChart"></canvas>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
     <div class="card">
-        <h2>{{ stats.online }}</h2>
-        <p>Online Devices</p>
-    </div>
 
-    <div class="card">
-        <h2>{{ stats.offline }}</h2>
-        <p>Offline Devices</p>
-    </div>
+        <div class="card-header">
 
-    <div class="card">
-        <h2>{{ stats.low }}</h2>
-        <p>Low Risk</p>
-    </div>
+            Latest Devices
 
-    <div class="card">
-        <h2>{{ stats.medium }}</h2>
-        <p>Medium Risk</p>
-    </div>
+        </div>
 
-    <div class="card">
-        <h2>{{ stats.high }}</h2>
-        <p>High Risk</p>
-    </div>
+        <div class="card-body">
 
-</div>
+            <div class="table-responsive">
 
-<h2>📊 Network Overview</h2>
+                <table class="table table-dark table-hover align-middle">
 
-<div class="charts">
+                    <thead>
 
-    <div class="chart-card">
-        <canvas id="riskChart"></canvas>
-    </div>
+                        <tr>
 
-    <div class="chart-card">
-        <canvas id="statusChart"></canvas>
-    </div>
+                            <th>IP</th>
+                            <th>Hostname</th>
+                            <th>Vendor</th>
+                            <th>Status</th>
+                            <th>Risk</th>
 
-</div>
+                        </tr>
 
-<div class="dashboard-grid">
+                    </thead>
 
-    <div class="panel">
+                    <tbody>
 
-        <h2>📋 Latest Devices</h2>
+                    {% for device in devices[:10] %}
 
-        <table>
+                    <tr>
 
-            <thead>
+                        <td>{{ device["ip"] or "-" }}</td>
 
-                <tr>
-                    <th>IP</th>
-                    <th>Vendor</th>
-                    <th>Status</th>
-                </tr>
+                        <td>{{ device["hostname"] or "-" }}</td>
 
-            </thead>
+                        <td>{{ device["vendor"] or "-" }}</td>
 
-            <tbody>
+                        <td>
 
-            {% for device in devices[:10] %}
+                            {% if device["status"]=="Online" %}
 
-                <tr>
+                                <span class="badge bg-success">
+                                    Online
+                                </span>
 
-                    <td>{{ device["ip"] or "-" }}</td>
+                            {% else %}
 
-                    <td>{{ device["vendor"] or "-" }}</td>
+                                <span class="badge bg-secondary">
+                                    Offline
+                                </span>
 
-                    <td>
+                            {% endif %}
 
-                        {% if device["status"]=="Online" %}
+                        </td>
 
-                            🟢 Online
+                        <td>
 
-                        {% else %}
+                            {% if device["risk"]=="High" %}
 
-                            🔴 Offline
+                                <span class="badge bg-danger">
+                                    High
+                                </span>
 
-                        {% endif %}
+                            {% elif device["risk"]=="Medium" %}
 
-                    </td>
+                                <span class="badge bg-warning text-dark">
+                                    Medium
+                                </span>
 
-                </tr>
+                            {% else %}
 
-            {% endfor %}
+                                <span class="badge bg-success">
+                                    Low
+                                </span>
 
-            </tbody>
+                            {% endif %}
 
-        </table>
+                        </td>
 
-    </div>
+                    </tr>
 
-    <div class="panel">
+                    {% endfor %}
 
-        <h2>🚨 Security Summary</h2>
+                    </tbody>
 
-        <ul>
+                </table>
 
-            <li>Total Devices : <strong>{{ stats.total }}</strong></li>
+            </div>
 
-            <li>Online : <strong>{{ stats.online }}</strong></li>
-
-            <li>Offline : <strong>{{ stats.offline }}</strong></li>
-
-            <li>High Risk : <strong>{{ stats.high }}</strong></li>
-
-            <li>Medium Risk : <strong>{{ stats.medium }}</strong></li>
-
-            <li>Low Risk : <strong>{{ stats.low }}</strong></li>
-
-        </ul>
+        </div>
 
     </div>
 
@@ -134,7 +239,7 @@
 
 new Chart(document.getElementById("riskChart"),{
 
-    type:"pie",
+    type:"doughnut",
 
     data:{
 
@@ -149,9 +254,9 @@ new Chart(document.getElementById("riskChart"),{
             ],
 
             backgroundColor:[
-                "#28a745",
-                "#ffc107",
-                "#dc3545"
+                "#22c55e",
+                "#f59e0b",
+                "#ef4444"
             ]
 
         }]
@@ -176,8 +281,8 @@ new Chart(document.getElementById("statusChart"),{
             ],
 
             backgroundColor:[
-                "#28a745",
-                "#dc3545"
+                "#22c55e",
+                "#6b7280"
             ]
 
         }]
@@ -187,13 +292,9 @@ new Chart(document.getElementById("statusChart"),{
     options:{
 
         plugins:{
-
             legend:{
-
                 display:false
-
             }
-
         }
 
     }
