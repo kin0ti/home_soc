@@ -2,126 +2,167 @@
 
 {% block content %}
 
-<h1>💻 Device Inventory</h1>
+<div class="container-fluid">
 
-<input
-type="text"
-id="searchInput"
-placeholder="Search IP, Hostname, MAC or Vendor..."
-onkeyup="searchTable()">
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-<table id="deviceTable">
+        <div>
 
-    <thead>
+            <h1>💻 Device Inventory</h1>
 
-        <tr>
+            <p class="text-secondary">
+                Total Devices: <strong>{{ devices|length }}</strong>
+            </p>
 
-            <th>IP Address</th>
-            <th>Hostname</th>
-            <th>MAC Address</th>
-            <th>Vendor</th>
-            <th>Status</th>
-            <th>Risk</th>
-            <th>Score</th>
-            <th>Action</th>
+        </div>
 
-        </tr>
+    </div>
 
-    </thead>
+    <div class="card mb-4">
 
-    <tbody>
+        <div class="card-body">
 
-    {% for device in devices %}
+            <input
+                class="form-control"
+                type="text"
+                id="searchInput"
+                placeholder="Search by IP, hostname, MAC or vendor..."
+                onkeyup="searchTable()">
 
-        <tr>
+        </div>
 
-            <td>{{ device["ip"] or "-" }}</td>
+    </div>
 
-            <td>{{ device["hostname"] or "-" }}</td>
+    <div class="card">
 
-            <td>{{ device["mac"] or "-" }}</td>
+        <div class="card-header">
 
-            <td>{{ device["vendor"] or "-" }}</td>
+            Network Devices
 
-            <td>
+        </div>
 
-                {% if device["status"]=="Online" %}
+        <div class="card-body">
 
-                    <span class="badge online">
-                        🟢 Online
-                    </span>
+            <div class="table-responsive">
 
-                {% else %}
+                <table class="table table-dark table-hover align-middle"
+                       id="deviceTable">
 
-                    <span class="badge offline">
-                        🔴 Offline
-                    </span>
+                    <thead>
 
-                {% endif %}
+                        <tr>
 
-            </td>
+                            <th>IP</th>
+                            <th>Hostname</th>
+                            <th>MAC</th>
+                            <th>Vendor</th>
+                            <th>Status</th>
+                            <th>Risk</th>
+                            <th>Score</th>
+                            <th></th>
 
-            <td>
+                        </tr>
 
-                {% if device["risk"]=="Low" %}
+                    </thead>
 
-                    <span class="badge low">
-                        🟢 Low
-                    </span>
+                    <tbody>
 
-                {% elif device["risk"]=="Medium" %}
+                    {% for device in devices %}
 
-                    <span class="badge medium">
-                        🟡 Medium
-                    </span>
+                    <tr>
 
-                {% elif device["risk"]=="High" %}
+                        <td>{{ device["ip"] or "-" }}</td>
 
-                    <span class="badge high">
-                        🔴 High
-                    </span>
+                        <td>{{ device["hostname"] or "-" }}</td>
 
-                {% else %}
+                        <td>{{ device["mac"] or "-" }}</td>
 
-                    {{ device["risk"] }}
+                        <td>{{ device["vendor"] or "-" }}</td>
 
-                {% endif %}
+                        <td>
 
-            </td>
+                            {% if device["status"]=="Online" %}
 
-            <td>{{ device["score"] }}</td>
+                                <span class="badge bg-success">
+                                    Online
+                                </span>
 
-            <td>
+                            {% else %}
 
-                <a href="/device/{{ device['id'] }}">
+                                <span class="badge bg-secondary">
+                                    Offline
+                                </span>
 
-                    <button class="view-btn">
+                            {% endif %}
 
-                        View
+                        </td>
 
-                    </button>
+                        <td>
 
-                </a>
+                            {% if device["risk"]=="High" %}
 
-            </td>
+                                <span class="badge bg-danger">
+                                    High
+                                </span>
 
-        </tr>
+                            {% elif device["risk"]=="Medium" %}
 
-    {% endfor %}
+                                <span class="badge bg-warning text-dark">
+                                    Medium
+                                </span>
 
-    </tbody>
+                            {% else %}
 
-</table>
+                                <span class="badge bg-success">
+                                    Low
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {{ device["score"] }}
+
+                        </td>
+
+                        <td>
+
+                            <a href="/device/{{ device['id'] }}"
+                               class="btn btn-sm btn-primary">
+
+                                View
+
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 <script>
 
-function searchTable(){
+function searchTable() {
 
-    let input=document.getElementById("searchInput");
+    let input = document.getElementById("searchInput");
 
-    let filter=input.value.toUpperCase();
+    let filter = input.value.toUpperCase();
 
-    let rows=document.querySelectorAll("#deviceTable tbody tr");
+    let rows = document.querySelectorAll("#deviceTable tbody tr");
 
     rows.forEach(function(row){
 
