@@ -2,132 +2,219 @@
 
 {% block content %}
 
-<h1>🖥 Device Details</h1>
+<div class="container-fluid">
 
-<div class="device-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-    <table class="device-details">
+        <div>
 
-        <tr>
-            <th>IP Address</th>
-            <td>{{ device["ip"] or "-" }}</td>
-        </tr>
+            <h1>🖥 Device Details</h1>
 
-        <tr>
-            <th>Hostname</th>
-            <td>{{ device["hostname"] or "-" }}</td>
-        </tr>
+            <p class="text-secondary">
+                Asset Profile
+            </p>
 
-        <tr>
-            <th>MAC Address</th>
-            <td>{{ device["mac"] or "-" }}</td>
-        </tr>
+        </div>
 
-        <tr>
-            <th>Vendor</th>
-            <td>{{ device["vendor"] or "-" }}</td>
-        </tr>
+        <a href="/devices" class="btn btn-outline-light">
+            ← Back to Devices
+        </a>
 
-        <tr>
-            <th>Status</th>
+    </div>
 
-            <td>
+    <div class="row">
 
-                {% if device["status"]=="Online" %}
+        <div class="col-lg-8">
 
-                    <span class="badge online">
+            <div class="card mb-4">
 
-                        🟢 Online
+                <div class="card-header">
 
-                    </span>
+                    Device Information
 
-                {% else %}
+                </div>
 
-                    <span class="badge offline">
+                <div class="card-body">
 
-                        🔴 Offline
+                    <table class="table table-dark table-borderless">
 
-                    </span>
+                        <tr>
+                            <th width="220">IP Address</th>
+                            <td>{{ device["ip"] or "-" }}</td>
+                        </tr>
 
-                {% endif %}
+                        <tr>
+                            <th>Hostname</th>
+                            <td>{{ device["hostname"] or "-" }}</td>
+                        </tr>
 
-            </td>
+                        <tr>
+                            <th>MAC Address</th>
+                            <td>{{ device["mac"] or "-" }}</td>
+                        </tr>
 
-        </tr>
+                        <tr>
+                            <th>Vendor</th>
+                            <td>{{ device["vendor"] or "-" }}</td>
+                        </tr>
 
-        <tr>
+                        <tr>
 
-            <th>Risk</th>
+                            <th>Status</th>
 
-            <td>
+                            <td>
 
-                {% if device["risk"]=="Low" %}
+                                {% if device["status"]=="Online" %}
 
-                    <span class="badge low">
+                                    <span class="badge bg-success">
+                                        Online
+                                    </span>
 
-                        🟢 Low
+                                {% else %}
 
-                    </span>
+                                    <span class="badge bg-secondary">
+                                        Offline
+                                    </span>
 
-                {% elif device["risk"]=="Medium" %}
+                                {% endif %}
 
-                    <span class="badge medium">
+                            </td>
 
-                        🟡 Medium
+                        </tr>
 
-                    </span>
+                        <tr>
 
-                {% elif device["risk"]=="High" %}
+                            <th>Risk Level</th>
 
-                    <span class="badge high">
+                            <td>
 
-                        🔴 High
+                                {% if device["risk"]=="High" %}
 
-                    </span>
+                                    <span class="badge bg-danger">
+                                        High
+                                    </span>
 
-                {% else %}
+                                {% elif device["risk"]=="Medium" %}
 
-                    {{ device["risk"] }}
+                                    <span class="badge bg-warning text-dark">
+                                        Medium
+                                    </span>
 
-                {% endif %}
+                                {% else %}
 
-            </td>
+                                    <span class="badge bg-success">
+                                        Low
+                                    </span>
 
-        </tr>
+                                {% endif %}
 
-        <tr>
-            <th>Risk Score</th>
-            <td>{{ device["score"] }}</td>
-        </tr>
+                            </td>
 
-        <tr>
-            <th>First Seen</th>
-            <td>{{ device["first_seen"] }}</td>
-        </tr>
+                        </tr>
 
-        <tr>
-            <th>Last Seen</th>
-            <td>{{ device["last_seen"] }}</td>
-        </tr>
+                        <tr>
 
-        <tr>
-            <th>Notes</th>
-            <td>{{ device["notes"] or "No notes available." }}</td>
-        </tr>
+                            <th>Risk Score</th>
 
-    </table>
+                            <td>
 
-    <br>
+                                <strong>{{ device["score"] }}</strong>
 
-    <a href="/devices">
+                            </td>
 
-        <button class="back-btn">
+                        </tr>
 
-            ⬅ Back to Devices
+                        <tr>
 
-        </button>
+                            <th>First Seen</th>
 
-    </a>
+                            <td>{{ device["first_seen"] }}</td>
+
+                        </tr>
+
+                        <tr>
+
+                            <th>Last Seen</th>
+
+                            <td>{{ device["last_seen"] }}</td>
+
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card mb-4">
+
+                <div class="card-header">
+
+                    Analyst Notes
+
+                </div>
+
+                <div class="card-body">
+
+                    {% if device["notes"] %}
+
+                        {{ device["notes"] }}
+
+                    {% else %}
+
+                        <em>No notes available.</em>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    Security Summary
+
+                </div>
+
+                <div class="card-body">
+
+                    <ul class="list-group list-group-flush">
+
+                        <li class="list-group-item bg-dark text-light">
+                            Status:
+                            <strong>{{ device["status"] }}</strong>
+                        </li>
+
+                        <li class="list-group-item bg-dark text-light">
+                            Risk:
+                            <strong>{{ device["risk"] }}</strong>
+                        </li>
+
+                        <li class="list-group-item bg-dark text-light">
+                            Score:
+                            <strong>{{ device["score"] }}</strong>
+                        </li>
+
+                        <li class="list-group-item bg-dark text-light">
+                            Vendor:
+                            <strong>{{ device["vendor"] or "-" }}</strong>
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </div>
 
