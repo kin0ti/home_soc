@@ -198,8 +198,81 @@ def alerts():
 
 @app.route("/reports")
 def reports():
-    return render_template("reports.html")
 
+    conn = get_connection()
+    cur = conn.cursor()
+
+    # Dashboard statistics
+    cur.execute("SELECT COUNT(*) FROM devices")
+    total_devices = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM devices WHERE status='Online'")
+    online_devices = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM devices WHERE status='Offline'")
+    offline_devices = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM alerts")
+    total_alerts = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM scans")
+    total_scans = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM devices WHERE risk='High'")
+    high_risk = cur.fetchone()[0]
+
+    # Vendors
+    cur.execute("""
+        SELECT vendor,
+               COUNT(*) AS total
+        FROM devices
+        GROUP BY vendor
+        ORDER BY total DESC
+    """)
+    vendors = cur.fetchall()
+
+    # Risk summary
+    cur.execute("""
+        SELECT risk,
+               COUNT(*) AS total
+        FROM devices
+        GROUP BY risk
+    """)
+    risks = cur.fetchall()
+
+    # Status summary
+    cur.execute("""
+        SELECT status,
+               COUNT(*) AS total
+        FROM devices
+        GROUP BY status
+    """)
+    statuses = cur.fetchall()
+
+    # Timeline
+    cur.execute("""
+        SELECT
+            MIN(first_seen) AS first_seen,
+            MAX(last_seen) AS last_seen
+        FROM devices
+    """)
+    timeline = cur.fetchone()
+
+    conn.close()
+
+    return render_template(
+        "reports.html",
+        total_devices=total_devices,
+        online_devices=online_devices,
+        offline_devices=offline_devices,
+        total_alerts=total_alerts,
+        total_scans=total_scans,
+        high_risk=high_risk,
+        vendors=vendors,
+        risks=risks,
+        statuses=statuses,
+        timeline=timeline,
+    )
 
 @app.route("/settings")
 def settings():

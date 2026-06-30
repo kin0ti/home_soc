@@ -645,3 +645,125 @@ def acknowledge_alert(alert_id: int):
             """,
             (alert_id,),
         )
+# ----------------------------------------------------------
+# Dashboard Statistics / Reports
+# ----------------------------------------------------------
+
+def get_dashboard_stats():
+    """
+    Returns summary statistics for the dashboard.
+    """
+
+    with get_connection() as conn:
+
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT(*) FROM devices")
+        total_devices = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM devices WHERE status='Online'")
+        online_devices = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM alerts")
+        total_alerts = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM scans")
+        total_scans = cursor.fetchone()[0]
+
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM devices
+            WHERE risk='High'
+        """)
+        high_risk = cursor.fetchone()[0]
+
+        return {
+            "total_devices": total_devices,
+            "online_devices": online_devices,
+            "offline_devices": total_devices - online_devices,
+            "total_alerts": total_alerts,
+            "total_scans": total_scans,
+            "high_risk": high_risk,
+        }
+
+
+def get_vendor_statistics():
+    """
+    Returns device counts grouped by vendor.
+    """
+
+    with get_connection() as conn:
+
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                vendor,
+                COUNT(*) AS total
+            FROM devices
+            GROUP BY vendor
+            ORDER BY total DESC
+        """)
+
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_risk_statistics():
+    """
+    Returns device counts grouped by risk level.
+    """
+
+    with get_connection() as conn:
+
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                risk,
+                COUNT(*) AS total
+            FROM devices
+            GROUP BY risk
+        """)
+
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_status_statistics():
+    """
+    Returns device counts grouped by online/offline status.
+    """
+
+    with get_connection() as conn:
+
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                status,
+                COUNT(*) AS total
+            FROM devices
+            GROUP BY status
+        """)
+
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def get_device_timeline():
+    """
+    Returns first and last discovery dates.
+    """
+
+    with get_connection() as conn:
+
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                MIN(first_seen) AS first_seen,
+                MAX(last_seen) AS last_seen
+            FROM devices
+        """)
+
+        row = cursor.fetchone()
+
+        return dict(row)

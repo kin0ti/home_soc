@@ -2,8 +2,134 @@
 
 {% block content %}
 
-<h2>Reports</h2>
+<h1>Security Reports</h1>
 
-<p>This page is under construction.</p>
+<div class="stats-grid">
+
+    <div class="card">
+        <h3>Total Devices</h3>
+        <h1>{{ total_devices }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Online Devices</h3>
+        <h1>{{ online_devices }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Offline Devices</h3>
+        <h1>{{ offline_devices }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Total Alerts</h3>
+        <h1>{{ total_alerts }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Total Scans</h3>
+        <h1>{{ total_scans }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>High Risk Devices</h3>
+        <h1>{{ high_risk }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Medium Risk Devices</h3>
+        <h1>{{ medium_risk }}</h1>
+    </div>
+
+    <div class="card">
+        <h3>Low Risk Devices</h3>
+        <h1>{{ low_risk }}</h1>
+    </div>
+
+</div>
+
+<hr>
+
+<h2>Monitoring Timeline</h2>
+
+<table class="table">
+
+<tr>
+    <th>First Device Seen</th>
+    <th>Most Recent Activity</th>
+</tr>
+
+<tr>
+    <td>{{ timeline.first_seen }}</td>
+    <td>{{ timeline.last_seen }}</td>
+</tr>
+
+</table>
+
+<hr>
+
+<h2>Vendor Distribution</h2>
+
+<table class="table">
+
+<tr>
+    <th>Vendor</th>
+    <th>Total Devices</th>
+</tr>
+
+{% for vendor in vendors %}
+
+<tr>
+    <td>{{ vendor.vendor }}</td>
+    <td>{{ vendor.total }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+<hr>
+
+<h2>Risk Distribution</h2>
+
+<table class="table">
+
+<tr>
+    <th>Risk Level</th>
+    <th>Devices</th>
+</tr>
+
+{% for risk in risks %}
+
+<tr>
+    <td>{{ risk.risk }}</td>
+    <td>{{ risk.total }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+<hr>
+
+<h2>Device Status</h2>
+
+<table class="table">
+
+<tr>
+    <th>Status</th>
+    <th>Total</th>
+</tr>
+
+{% for status in statuses %}
+
+<tr>
+    <td>{{ status.status }}</td>
+    <td>{{ status.total }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
 
 {% endblock %}
