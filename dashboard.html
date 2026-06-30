@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Dashboard</h2>
+
+<h3>Summary</h3>
+
+<ul>
+    <li>Total Devices: {{ total_devices }}</li>
+    <li>Online Devices: {{ online_devices }}</li>
+    <li>Offline Devices: {{ offline_devices }}</li>
+</ul>
+
+<h3>Recent Alerts</h3>
+
+<table border="1" cellpadding="6">
+
+<tr>
+    <th>Category</th>
+    <th>Hostname</th>
+    <th>IP</th>
+    <th>Time</th>
+</tr>
+
+{% for alert in alerts %}
+<tr>
+    <td>{{ alert.category }}</td>
+    <td>{{ alert.hostname }}</td>
+    <td>{{ alert.ip }}</td>
+    <td>{{ alert.created_at }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}
