@@ -20,6 +20,8 @@ import json
 import logging
 import socket
 import subprocess
+import time
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
@@ -40,14 +42,16 @@ from rich.table import Table
 from python.core.database import (
     initialize_database,
     save_scan,
+    mark_offline_devices,
 )
-
 from python.core.inventory import (
     get_known_macs,
 )
 
 from python.core.alerts import (
     new_device,
+    device_online,
+    device_offline,
 )
 
 logger = logging.getLogger(__name__)
@@ -748,7 +752,10 @@ def main():
             new_device(device)
 
     save_scan(discovered)
-    mark_offline_devices(active_macs)
+    offline = mark_offline_devices(active_macs)
+
+    for device in offline:
+        device_offline(device)
     print_security_summary(discovered)
 if __name__ == "__main__":
     main()

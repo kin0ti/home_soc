@@ -92,15 +92,39 @@ def initialize_database() -> None:
                 risk TEXT,
                 score INTEGER,
 
-                notes TEXT
-                
-               device_type TEXT,
-               os_guess TEXT,
-               last_ports TEXT
+                notes TEXT,
+
+                device_type TEXT,
+                os_guess TEXT,
+                last_ports TEXT
             )
             """
         )
 
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS alerts
+            (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                alert_time TEXT NOT NULL,
+
+                severity TEXT NOT NULL,
+
+                category TEXT NOT NULL,
+
+                hostname TEXT,
+
+                ip TEXT,
+
+                mac TEXT,
+
+                message TEXT NOT NULL,
+
+                acknowledged INTEGER DEFAULT 0
+            )
+            """
+        )
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS scans
@@ -210,7 +234,6 @@ def _create_indexes(cursor: sqlite3.Cursor) -> None:
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_scan_results_mac ON scan_results(mac)"
     )
-
 
 # ----------------------------------------------------------
 # Scan Storage
@@ -383,6 +406,40 @@ def save_scan(discovered: Iterable[Dict[str, Any]]) -> int:
         return scan_id
 
 
+def mark_offline_devices(active_macs):
+    offline_devices = []
+
+    with get_connection() as conn:
+
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT id, hostname, ip, mac, status
+            FROM devices
+            WHERE status='Online'
+        """)
+
+        devices = [dict(row) for row in cursor.fetchall()]
+
+        for device in devices:
+
+            mac = device["mac"]
+
+            if mac and mac not in active_macs:
+
+                cursor.execute(
+                    """
+                    UPDATE devices
+                    SET status='Offline'
+                    WHERE mac=?
+                    """,
+                    (mac,),
+                )
+
+                offline_devices.append(device)
+
+    return offline_devices
+
 # ----------------------------------------------------------
 # Query Functions
 # ----------------------------------------------------------
@@ -518,3 +575,73 @@ def vacuum_database() -> None:
     with get_connection() as conn:
 
         conn.execute("VACUUM")
+# ----------------------------------------------------------
+# Alerts
+# ----------------------------------------------------------
+
+def add_alert(
+    severity: str,
+    category: str,
+    message: str,
+    hostname: str = "",
+    ip: str = "",
+    mac: str = ""
+) -> None:
+
+    with get_connection() as conn:
+
+        conn.execute(
+            """
+            INSERT INTO alerts
+            (
+                alert_time,
+                severity,
+                category,
+                hostname,
+                ip,
+                mac,
+                message
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                severity,
+                category,
+                hostname,
+                ip,
+                mac,
+                message,
+            ),
+        )
+
+
+def get_alert_history(limit: int = 100):
+
+    with get_connection() as conn:
+
+        rows = conn.execute(
+            """
+            SELECT *
+            FROM alerts
+            ORDER BY alert_time DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+
+        return [dict(row) for row in rows]
+
+
+def acknowledge_alert(alert_id: int):
+
+    with get_connection() as conn:
+
+        conn.execute(
+            """
+            UPDATE alerts
+            SET acknowledged = 1
+            WHERE id = ?
+            """,
+            (alert_id,),
+        )
